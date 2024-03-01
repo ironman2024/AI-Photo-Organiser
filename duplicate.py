@@ -22,5 +22,5 @@ def remove_duplicates(main_folder):
             else:
                 uniquefiles[image_hash]=filepath
             
-main_folder=r"your_path"
+main_folder=r"Images"
 remove_duplicates(main_folder)
