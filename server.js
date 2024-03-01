@@ -1,8 +1,10 @@
 const express = require("express");
 const app = express();
-const path = require('path')
+const path = require('path');
+const fs = require('fs');
+const multer = require('multer');
+const { spawn } = require('child_process');
 
-const multer = require('multer')
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         cb(null, 'Images')
@@ -22,7 +24,37 @@ app.get("/upload", (req, res) => {
 });
 
 app.post("/upload", upload.array('image'), (req, res) => {
-    res.send("Image Uploaded");
+    const inputFolderPath = 'Images';
+    const outputFolderPath = 'Blur';
+
+    const pythonProcessBlur = spawn('python', ['blur.py', inputFolderPath]);
+
+    pythonProcessBlur.stdout.on('data', (data) => {
+        console.log(`Blur detection output: ${data}`);
+    });
+
+    pythonProcessBlur.stderr.on('data', (data) => {
+        console.error(`Error executing blur detection script: ${data}`);
+    });
+
+    pythonProcessBlur.on('close', (codeBlur) => {
+        console.log(`Blur detection script exited with code ${codeBlur}`);
+
+        const pythonProcessDuplicate = spawn('python', ['duplicate.py', inputFolderPath]);
+
+        pythonProcessDuplicate.stdout.on('data', (data) => {
+            console.log(`Duplicate removal output: ${data}`);
+        });
+
+        pythonProcessDuplicate.stderr.on('data', (data) => {
+            console.error(`Error executing duplicate removal script: ${data}`);
+        });
+
+        pythonProcessDuplicate.on('close', (codeDuplicate) => {
+            console.log(`Duplicate removal script exited with code ${codeDuplicate}`);
+            res.send("Image(s) Uploaded, processed for blur detection, and duplicate images removed.");
+        });
+    });
 });
 
 app.listen(3001);
