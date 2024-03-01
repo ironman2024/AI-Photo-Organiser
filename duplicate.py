@@ -1,11 +1,19 @@
-from imutils import paths
-import numpy as np
-import argparse
-import cv2
+from PIL import Image
+import imagehash
 import os
+main_folder=r"data_path"
+images_folder=os.path.join(main_folder,'images_dataset')
+images=[f for f in os.listdir(images_folder)if os.path.isfile(os.path.join(images_folder,f))]
+images.sort()
 
-def dhash(image,hashSize=8):
-    gray=cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)
-    resized= cv2.resize(gray,(hashSize+1,hashSize))
-    diff =resized[:,1:]>resized[:,:-1]
-    return sum([2 **i for (i,v) in enumerate(diff.flatten()) if v])
+for i in range(len(images)):
+   image_path= os.path.join(images_folder,images[i])
+   image=Image.open(image_path)
+   hash_value_i=imagehash.dhash(image)
+   print(f"Image: {images[i]} | dhash value :{hash_value_i}")
+   for j in range(i+1,len(images)):
+        image_path= os.path.join(images_folder,images[j])
+        image=Image.open(image_path)
+        hash_value_j=imagehash.dhash(image)
+        if(hash_value_j==hash_value_i):
+           print(f"Duplicate image Found:    {images[i]} | {images[j]}")
