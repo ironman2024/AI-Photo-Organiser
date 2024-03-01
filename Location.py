@@ -1,14 +1,20 @@
-import PIL.Image
-import PIL.ExifTags
+from PIL import Image
 
-img = PIL.Image.open("Test.jpg")
+# Open the image file
+image_path = r"C:\Users\Lenovo\Downloads\image_67186177.JPG"  # Replace with the path to your image
+image = Image.open(image_path)
 
-if hasattr(img, "_getexif") and callable(getattr(img, "_getexif")):
-    exif = {
-        PIL.ExifTags.TAGS[k]: v
-        for k, v in img._getexif().items()
-        if k in PIL.ExifTags.TAGS
-    }
-    print(exif)
+# Get image metadata
+metadata = image.info
+
+# Print metadata
+print("Image Metadata:")
+for key, value in metadata.items():
+    print(f"{key}: {value}")
+
+# Extract the threshold value (if available)
+threshold = metadata.get('threshold')
+if threshold is not None:
+    print(f"Threshold value: {threshold}")
 else:
-    print("NO data Found!")
+    print("Threshold value not found in metadata.")
