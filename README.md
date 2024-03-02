@@ -30,6 +30,10 @@ The Image Processing Server is a web application that allows users to upload ima
 5. Download the zip file from the provided link.
 6. The server will automatically clean up uploaded images and processed results to maintain disk space.
 
+*System Architecture*
+![Research and design](https://github.com/ironman2024/Hacksprintv5.o_AIML02_CtrlShiftHack/assets/113116636/e858fdec-2986-446e-89d1-9fffc12a9334)
+
+
 *Dependencies*
 1. Node.js
 2. Express.js
