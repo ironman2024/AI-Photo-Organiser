@@ -5,6 +5,7 @@ const fs = require('fs');
 const multer = require('multer');
 const { spawn } = require('child_process');
 const { exec } = require('child_process');
+const archiver = require('archiver');
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -26,7 +27,8 @@ app.get("/upload", (req, res) => {
 
 app.post("/upload", upload.array('image'), (req, res) => {
     const inputFolderPath = 'Images';
-    const outputFolderPath = 'Blur';
+    const blurFolderPath = 'Blur';
+    const locationFolderPath = 'Location';
 
     // Execute script to remove duplicates
     const pythonProcessDuplicate = spawn('python', ['duplicate.py', inputFolderPath]);
@@ -66,13 +68,65 @@ app.post("/upload", upload.array('image'), (req, res) => {
                         }
                         console.log(`Location script output: ${stdout}`);
                         console.error(`Location script errors: ${stderr}`);
+
+                        // Create a zip file of the Output folder
+                        const outputZipPath = path.join(__dirname, 'output.zip');
+                        const outputZipStream = fs.createWriteStream(outputZipPath);
+                        const archive = archiver('zip', { zlib: { level: 9 } });
+
+                        outputZipStream.on('close', () => {
+                            console.log(`Zip file created: ${outputZipPath}`);
+
+                            // Send the zip file as a response for download
+                            res.download(outputZipPath, 'output.zip', (err) => {
+                                if (err) {
+                                    console.error(`Error sending zip file: ${err}`);
+                                } else {
+                                    console.log('Zip file sent successfully');
+
+                                    // Remove the created zip file
+                                    fs.unlinkSync(outputZipPath);
+
+                                    // Remove the contents of the Blur folder
+                                    removeFolderContents(blurFolderPath);
+
+                                    // Remove the contents of the Images folder
+                                    removeFolderContents(inputFolderPath);
+
+                                    // Remove the contents of the Location folder
+                                    removeFolderContents(locationFolderPath);
+                                }
+                            });
+                        });
+
+                        archive.pipe(outputZipStream);
+                        archive.directory(inputFolderPath, false);
+                        archive.finalize();
                     });
                 }
             });
         }
     });
 
-    res.send("Image(s) Uploaded, processed for duplicate removal, blur detection, and sorted based on location.");
+    function removeFolderContents(folder) {
+        try {
+            const files = fs.readdirSync(folder);
+            files.forEach((file) => {
+                const filePath = path.join(folder, file);
+                if (fs.statSync(filePath).isFile()) {
+                    fs.unlinkSync(filePath);
+                    console.log(`File ${filePath} removed`);
+                } else if (fs.statSync(filePath).isDirectory()) {
+                    removeFolderContents(filePath); // Recursively remove contents of subdirectories
+                    fs.rmdirSync(filePath); // Remove the directory itself after its contents are deleted
+                    console.log(`Directory ${filePath} removed`);
+                }
+            });
+            console.log(`Contents of directory ${folder} removed`);
+        } catch (error) {
+            console.error(`Error removing contents of directory ${folder}: ${error}`);
+        }
+    }
 });
 
 app.listen(3001);
