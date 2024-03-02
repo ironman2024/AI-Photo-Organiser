@@ -4,6 +4,7 @@ const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
 const { spawn } = require('child_process');
+const { exec } = require('child_process');
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -27,34 +28,51 @@ app.post("/upload", upload.array('image'), (req, res) => {
     const inputFolderPath = 'Images';
     const outputFolderPath = 'Blur';
 
-    const pythonProcessBlur = spawn('python', ['blur.py', inputFolderPath]);
+    // Execute script to remove duplicates
+    const pythonProcessDuplicate = spawn('python', ['duplicate.py', inputFolderPath]);
 
-    pythonProcessBlur.stdout.on('data', (data) => {
-        console.log(`Blur detection output: ${data}`);
+    pythonProcessDuplicate.stdout.on('data', (data) => {
+        console.log(`Duplicate removal output: ${data}`);
     });
 
-    pythonProcessBlur.stderr.on('data', (data) => {
-        console.error(`Error executing blur detection script: ${data}`);
+    pythonProcessDuplicate.stderr.on('data', (data) => {
+        console.error(`Error executing duplicate removal script: ${data}`);
     });
 
-    pythonProcessBlur.on('close', (codeBlur) => {
-        console.log(`Blur detection script exited with code ${codeBlur}`);
+    pythonProcessDuplicate.on('close', (codeDuplicate) => {
+        console.log(`Duplicate removal script exited with code ${codeDuplicate}`);
 
-        const pythonProcessDuplicate = spawn('python', ['duplicate.py', inputFolderPath]);
+        // If duplicate removal is successful, proceed with blur detection
+        if (codeDuplicate === 0) {
+            const pythonProcessBlur = spawn('python', ['blur.py', inputFolderPath]);
 
-        pythonProcessDuplicate.stdout.on('data', (data) => {
-            console.log(`Duplicate removal output: ${data}`);
-        });
+            pythonProcessBlur.stdout.on('data', (data) => {
+                console.log(`Blur detection output: ${data}`);
+            });
 
-        pythonProcessDuplicate.stderr.on('data', (data) => {
-            console.error(`Error executing duplicate removal script: ${data}`);
-        });
+            pythonProcessBlur.stderr.on('data', (data) => {
+                console.error(`Error executing blur detection script: ${data}`);
+            });
 
-        pythonProcessDuplicate.on('close', (codeDuplicate) => {
-            console.log(`Duplicate removal script exited with code ${codeDuplicate}`);
-            res.send("Image(s) Uploaded, processed for blur detection, and duplicate images removed.");
-        });
+            pythonProcessBlur.on('close', (codeBlur) => {
+                console.log(`Blur detection script exited with code ${codeBlur}`);
+
+                // If blur detection is successful, proceed with location-based sorting
+                if (codeBlur === 0) {
+                    exec('python location.py', (error, stdout, stderr) => {
+                        if (error) {
+                            console.error(`Error executing location.py script: ${error}`);
+                            return;
+                        }
+                        console.log(`Location script output: ${stdout}`);
+                        console.error(`Location script errors: ${stderr}`);
+                    });
+                }
+            });
+        }
     });
+
+    res.send("Image(s) Uploaded, processed for duplicate removal, blur detection, and sorted based on location.");
 });
 
 app.listen(3001);
