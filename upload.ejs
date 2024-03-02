@@ -1,15 +1,118 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Image Upload</title>
+    <title>Lensify Website</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Italianno&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="index.css">
+    <style>
+        /* Insert provided CSS styles here */
+        * {
+            margin: 0;
+            padding: 0;
+            font-family: sans-serif;
+        }
+
+        .banner {
+            width: 100%;
+            height: 100vh;
+            background-image: linear-gradient(rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0.75)), url("https://media.istockphoto.com/id/1672317574/photo/ama-dablam-mountain-peak.webp?b=1&s=170667a&w=0&k=20&c=Ea8yDEHpUemrRuMZUKGPDBE11YTWVksIupMN8FkEBf8=");
+            background-size: cover;
+            background-position: center;
+        }
+
+        .name {
+            display: flex;
+            padding-top: 10px;
+            padding-left: 15px;
+            font-size: 25px;
+            color: white;
+            font-weight: 700;
+            width: 120px;
+            cursor: pointer;
+        }
+
+        .container {
+            width: 100%;
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            text-align: center;
+            color: white;
+            font-style: italic;
+            font-family: "Italianno", cursive;
+        }
+
+        .italianno-regular {
+            font-family: "Italianno", cursive;
+            font-weight: 400;
+            font-style: normal;
+            font-size: 75px;
+        }
+
+        button {
+            width: 150px;
+            padding-bottom: 0px;
+            height: 40px;
+            text-align: center;
+            margin: 20px 10px;
+            border-radius: 25px;
+            font-weight: bold;
+            border: 2px solid #c7d2d0;
+            background: transparent;
+            color: white;
+            font-size: 15px;
+            margin-right: 25px;
+        }
+
+        button:hover {
+            background-color: #c7d2d0;
+            transition: background-color 0.7s ease;
+            color: rgb(37, 37, 37);
+        }
+
+        button:active {
+            background-color: #171918;
+            transition: background-color 0.7s ease;
+            color: rgb(37, 37, 37);
+        }
+
+        form {
+            margin-top: 30px;
+            max-width: 300px;
+            margin: auto;
+            padding: 20px;
+            padding-left: 50x;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+
+        input[type="file"] {
+            font-size: 16px;
+            margin-left: 35px;
+            font-family: 'Arial';
+        }
+    </style>
 </head>
+
 <body>
-    <h1>Image Upload</h1>
-    <form action="/upload" method="post" enctype="multipart/form-data">
-        <input type="file" name="image" accept="image/*" multiple>
-        <button type="submit">Upload Image</button>
-    </form>    
+    <div class="banner">
+        <div class="navbar">
+            <div class="name">Lensify</div>
+        </div>
+        <div class="container">
+            <h1 class="italianno-regular">Make Memories, Not Clutter</h1>
+
+            <div>
+                <form action="/upload" method="post" enctype="multipart/form-data">
+                    <input type="file" name="image" accept="image/*" multiple>
+                    <button type="submit">Upload Image</button>
+                </form>
+            </div>
+        </div>
+    </div>
 </body>
+
 </html>
