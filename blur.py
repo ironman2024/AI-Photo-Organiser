@@ -1,36 +1,47 @@
 import cv2
 import os
+import sys
+import shutil
 
-def is_blurry(image_path, threshold=50):
-    # Load the image
+def is_blurry(image_path, threshold=80):
     image = cv2.imread(image_path)
 
-    # Convert the image to HSV color space
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
-    # Extract the saturation channel
     saturation = hsv[:,:,1]
 
-    # Compute the mean saturation value
     mean_saturation = saturation.mean()
+    # Adjust threshold based on image type
+    if image_path.endswith('.jpg') or image_path.endswith('.jpeg'):
+        threshold = 100
+    elif image_path.endswith('.png'):
+        threshold = 200
 
-    # Check if the mean saturation is below the threshold
-    if mean_saturation < threshold:
+    if  mean_saturation > threshold:
         return True
     else:
         return False
 
-def detect_blurry_images(folder_path):
+
+def detect_blurry_images(input_folder, output_folder):
     blurry_images = []
-    for filename in os.listdir(folder_path):
-        image_path = os.path.join(folder_path, filename)
+    blur_folder = 'Blur'
+
+    # Create Blur folder if not exist
+    if not os.path.exists(blur_folder):
+        os.mkdir(blur_folder)
+
+    for filename in os.listdir(input_folder):
+        image_path = os.path.join(input_folder, filename)
         if is_blurry(image_path):
             blurry_images.append(filename)
+            # Copy the blurry image to Blur folder
+            shutil.copy(image_path, os.path.join(blur_folder, filename))
     return blurry_images
 
-# Folder path containing images
-folder_path = "pictures"
+if __name__ == "__main__":
+    input_folder = sys.argv[1]
+    output_folder = 'Blur'
 
-# Detect blurry images
-blurry_images = detect_blurry_images(folder_path)
-print("Blurry images:", blurry_images)
+    blurry_images = detect_blurry_images(input_folder, output_folder)
+    print("Blurry images:", blurry_images)
