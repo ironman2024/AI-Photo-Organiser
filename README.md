@@ -14,11 +14,11 @@ Features
 6. Clean-up: After processing, the server clears uploaded images and processed results to conserve disk space.
 
 Installation
-i. Clone the repository to your local machine.
-ii. Install the required dependencies by running npm install in the project directory.
-iii. Make sure Python is installed on your system, as the server relies on Python scripts for image processing tasks.
-iv. Run the server by executing node server.js.
-v. Access the server through your web browser at http://localhost:3001.
+1. Clone the repository to your local machine.
+2. Install the required dependencies by running npm install in the project directory.
+3. Make sure Python is installed on your system, as the server relies on Python scripts for image processing tasks.
+4. Run the server by executing node server.js.
+5. Access the server through your web browser at http://localhost:3001.
 
 Usage
 1. Navigate to the upload page on the web interface.
