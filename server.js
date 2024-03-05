@@ -6,18 +6,18 @@ const multer = require('multer');
 const { spawn } = require('child_process');
 const { exec } = require('child_process');
 const archiver = require('archiver');
+const request = require('request');
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         cb(null, 'Images')
     },
     filename: (req, file, cb) => {
-        console.log(file)
         cb(null, Date.now() + path.extname(file.originalname))
     }
-})
+});
 
-const upload = multer({storage: storage})
+const upload = multer({storage: storage});
 
 app.set("view engine", "ejs");
 
@@ -69,6 +69,9 @@ app.post("/upload", upload.array('image'), (req, res) => {
                         console.log(`Location script output: ${stdout}`);
                         console.error(`Location script errors: ${stderr}`);
 
+                        // Reverse geocode coordinates and rename folders
+                        reverseGeocodeAndRenameFolders(stdout, locationFolderPath);
+
                         // Create a zip file of the Output folder
                         const outputZipPath = path.join(__dirname, 'output.zip');
                         const outputZipStream = fs.createWriteStream(outputZipPath);
@@ -90,23 +93,55 @@ app.post("/upload", upload.array('image'), (req, res) => {
                                     // Remove the contents of the Blur folder
                                     removeFolderContents(blurFolderPath);
 
-                                    // Remove the contents of the Images folder
-                                    removeFolderContents(inputFolderPath);
-
                                     // Remove the contents of the Location folder
                                     removeFolderContents(locationFolderPath);
+
+                                    // Remove the contents of the Images folder
+                                    removeFolderContents(inputFolderPath);
                                 }
                             });
                         });
 
                         archive.pipe(outputZipStream);
-                        archive.directory(inputFolderPath, false);
+                        archive.directory(blurFolderPath, 'Blur');
+                        archive.directory(locationFolderPath, 'Location');
                         archive.finalize();
                     });
                 }
             });
         }
     });
+
+    function reverseGeocodeAndRenameFolders(coordinatesData, locationFolderPath) {
+        const coordinates = coordinatesData.split('\n');
+
+        coordinates.forEach((coordinate, index) => {
+            if (coordinate) {
+                const [latitude, longitude] = coordinate.split(',');
+                reverseGeocode(latitude, longitude, (address) => {
+                    const oldFolderPath = path.join(locationFolderPath, `${latitude},${longitude}`);
+                    const newFolderPath = path.join(locationFolderPath, address);
+                    fs.renameSync(oldFolderPath, newFolderPath);
+                });
+            }
+        });
+    }
+
+    function reverseGeocode(latitude, longitude, callback) {
+        const apiKey = 'YOUR_GOOGLE_MAPS_API_KEY';
+        const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${apiKey}`;
+
+        request(url, (error, response, body) => {
+            if (!error && response.statusCode === 200) {
+                const data = JSON.parse(body);
+                const address = data.results[0].formatted_address;
+                callback(address);
+            } else {
+                console.error(`Error in reverse geocoding: ${error}`);
+                callback("Unknown");
+            }
+        });
+    }
 
     function removeFolderContents(folder) {
         try {
