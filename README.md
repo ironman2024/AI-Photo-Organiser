@@ -1,4 +1,4 @@
-# AI Phtot Organiser
+# AI Photo Organiser
 
 ## Image Processing Server
 **Problem statement** : 
