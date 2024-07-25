@@ -1,4 +1,4 @@
-# Team-Ctrl+Shift+Hack
+# AI Phtot Organiser
 
 ## Image Processing Server
 **Problem statement** : 
